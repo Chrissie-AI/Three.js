@@ -35,7 +35,8 @@ class LatheGeometry extends BufferGeometry {
 
 		const inverseSegments = 1.0 / segments;
 		const vertex = new Vector3();
-		const uv = new Vector2();
+		const uv = new Vector3();
+      var scale = 1.0;
 
 		// generate vertices and uvs
 
@@ -47,6 +48,8 @@ class LatheGeometry extends BufferGeometry {
 			const cos = Math.cos( phi );
 
 			for ( let j = 0; j <= ( points.length - 1 ); j ++ ) {
+            
+            scale = points[j].x / points[0].x;
 
 				// vertex
 
@@ -58,10 +61,11 @@ class LatheGeometry extends BufferGeometry {
 
 				// uv
 
-				uv.x = i / segments;
+				uv.x = ( i / segments ) * scale;
 				uv.y = j / ( points.length - 1 );
+				uv.z = scale;
 
-				uvs.push( uv.x, uv.y );
+                    uvs.push( uv.x, uv.y, uv.z );
 
 
 			}
@@ -94,7 +98,7 @@ class LatheGeometry extends BufferGeometry {
 
 		this.setIndex( indices );
 		this.setAttribute( 'position', new Float32BufferAttribute( vertices, 3 ) );
-		this.setAttribute( 'uv', new Float32BufferAttribute( uvs, 2 ) );
+		this.setAttribute( 'uv', new Float32BufferAttribute( uvs, 3 ) );
 
 		// generate normals
 

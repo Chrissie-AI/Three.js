@@ -289,13 +289,6 @@ class EventDispatcher {
 
 }
 
-let _seed = 1234567;
-
-const DEG2RAD = Math.PI / 180;
-const RAD2DEG = 180 / Math.PI;
-
-//
-
 const _lut = [];
 
 for ( let i = 0; i < 256; i ++ ) {
@@ -304,18 +297,14 @@ for ( let i = 0; i < 256; i ++ ) {
 
 }
 
-const hasRandomUUID = typeof crypto !== 'undefined' && 'randomUUID' in crypto;
+let _seed = 1234567;
 
+
+const DEG2RAD = Math.PI / 180;
+const RAD2DEG = 180 / Math.PI;
+
+// http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript/21963136#21963136
 function generateUUID() {
-
-	if ( hasRandomUUID ) {
-
-		return crypto.randomUUID().toUpperCase();
-
-	}
-
-	// TODO Remove this code when crypto.randomUUID() is available everywhere
-	// http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript/21963136#21963136
 
 	const d0 = Math.random() * 0xffffffff | 0;
 	const d1 = Math.random() * 0xffffffff | 0;
@@ -12858,7 +12847,7 @@ var logdepthbuf_pars_vertex = "#ifdef USE_LOGDEPTHBUF\n\t#ifdef USE_LOGDEPTHBUF_
 
 var logdepthbuf_vertex = "#ifdef USE_LOGDEPTHBUF\n\t#ifdef USE_LOGDEPTHBUF_EXT\n\t\tvFragDepth = 1.0 + gl_Position.w;\n\t\tvIsPerspective = float( isPerspectiveMatrix( projectionMatrix ) );\n\t#else\n\t\tif ( isPerspectiveMatrix( projectionMatrix ) ) {\n\t\t\tgl_Position.z = log2( max( EPSILON, gl_Position.w + 1.0 ) ) * logDepthBufFC - 1.0;\n\t\t\tgl_Position.z *= gl_Position.w;\n\t\t}\n\t#endif\n#endif";
 
-var map_fragment = "#ifdef USE_MAP\n\tvec4 texelColor = texture2D( map, vUv );\n\ttexelColor = mapTexelToLinear( texelColor );\n\tdiffuseColor *= texelColor;\n#endif";
+var map_fragment = "#ifdef USE_MAP\nvec4 texelColor = texture2D( map, vec2( vUv.x / vUv.z, vUv.y ) );\n\ttexelColor = mapTexelToLinear( texelColor );\n\tdiffuseColor *= texelColor;\n#endif";
 
 var map_pars_fragment = "#ifdef USE_MAP\n\tuniform sampler2D map;\n#endif";
 
@@ -12938,11 +12927,11 @@ var transmission_fragment = "#ifdef USE_TRANSMISSION\n\tfloat transmissionAlpha 
 
 var transmission_pars_fragment = "#ifdef USE_TRANSMISSION\n\tuniform float transmission;\n\tuniform float thickness;\n\tuniform float attenuationDistance;\n\tuniform vec3 attenuationColor;\n\t#ifdef USE_TRANSMISSIONMAP\n\t\tuniform sampler2D transmissionMap;\n\t#endif\n\t#ifdef USE_THICKNESSMAP\n\t\tuniform sampler2D thicknessMap;\n\t#endif\n\tuniform vec2 transmissionSamplerSize;\n\tuniform sampler2D transmissionSamplerMap;\n\tuniform mat4 modelMatrix;\n\tuniform mat4 projectionMatrix;\n\tvarying vec3 vWorldPosition;\n\tvec3 getVolumeTransmissionRay( vec3 n, vec3 v, float thickness, float ior, mat4 modelMatrix ) {\n\t\tvec3 refractionVector = refract( - v, normalize( n ), 1.0 / ior );\n\t\tvec3 modelScale;\n\t\tmodelScale.x = length( vec3( modelMatrix[ 0 ].xyz ) );\n\t\tmodelScale.y = length( vec3( modelMatrix[ 1 ].xyz ) );\n\t\tmodelScale.z = length( vec3( modelMatrix[ 2 ].xyz ) );\n\t\treturn normalize( refractionVector ) * thickness * modelScale;\n\t}\n\tfloat applyIorToRoughness( float roughness, float ior ) {\n\t\treturn roughness * clamp( ior * 2.0 - 2.0, 0.0, 1.0 );\n\t}\n\tvec4 getTransmissionSample( vec2 fragCoord, float roughness, float ior ) {\n\t\tfloat framebufferLod = log2( transmissionSamplerSize.x ) * applyIorToRoughness( roughness, ior );\n\t\t#ifdef TEXTURE_LOD_EXT\n\t\t\treturn texture2DLodEXT( transmissionSamplerMap, fragCoord.xy, framebufferLod );\n\t\t#else\n\t\t\treturn texture2D( transmissionSamplerMap, fragCoord.xy, framebufferLod );\n\t\t#endif\n\t}\n\tvec3 applyVolumeAttenuation( vec3 radiance, float transmissionDistance, vec3 attenuationColor, float attenuationDistance ) {\n\t\tif ( attenuationDistance == 0.0 ) {\n\t\t\treturn radiance;\n\t\t} else {\n\t\t\tvec3 attenuationCoefficient = -log( attenuationColor ) / attenuationDistance;\n\t\t\tvec3 transmittance = exp( - attenuationCoefficient * transmissionDistance );\t\t\treturn transmittance * radiance;\n\t\t}\n\t}\n\tvec4 getIBLVolumeRefraction( vec3 n, vec3 v, float roughness, vec3 diffuseColor, vec3 specularColor, float specularF90,\n\t\tvec3 position, mat4 modelMatrix, mat4 viewMatrix, mat4 projMatrix, float ior, float thickness,\n\t\tvec3 attenuationColor, float attenuationDistance ) {\n\t\tvec3 transmissionRay = getVolumeTransmissionRay( n, v, thickness, ior, modelMatrix );\n\t\tvec3 refractedRayExit = position + transmissionRay;\n\t\tvec4 ndcPos = projMatrix * viewMatrix * vec4( refractedRayExit, 1.0 );\n\t\tvec2 refractionCoords = ndcPos.xy / ndcPos.w;\n\t\trefractionCoords += 1.0;\n\t\trefractionCoords /= 2.0;\n\t\tvec4 transmittedLight = getTransmissionSample( refractionCoords, roughness, ior );\n\t\tvec3 attenuatedColor = applyVolumeAttenuation( transmittedLight.rgb, length( transmissionRay ), attenuationColor, attenuationDistance );\n\t\tvec3 F = EnvironmentBRDF( n, v, specularColor, specularF90, roughness );\n\t\treturn vec4( ( 1.0 - F ) * attenuatedColor * diffuseColor, transmittedLight.a );\n\t}\n#endif";
 
-var uv_pars_fragment = "#if ( defined( USE_UV ) && ! defined( UVS_VERTEX_ONLY ) )\n\tvarying vec2 vUv;\n#endif";
+var uv_pars_fragment = "#if ( defined( USE_UV ) && ! defined( UVS_VERTEX_ONLY ) )\n\tvarying vec3 vUv;\n#endif";
 
-var uv_pars_vertex = "#ifdef USE_UV\n\t#ifdef UVS_VERTEX_ONLY\n\t\tvec2 vUv;\n\t#else\n\t\tvarying vec2 vUv;\n\t#endif\n\tuniform mat3 uvTransform;\n#endif";
+var uv_pars_vertex = "#ifdef USE_UV\n\t#ifdef UVS_VERTEX_ONLY\n\t\tvec2 vUv;\n\t#else\n\t\tvarying vec3 vUv;\n\t#endif\n\tuniform mat3 uvTransform;\n#endif";
 
-var uv_vertex = "#ifdef USE_UV\n\tvUv = ( uvTransform * vec3( uv, 1 ) ).xy;\n#endif";
+var uv_vertex = "#ifdef USE_UV\n\tvUv = ( uvTransform * vec3( uv ) );\n#endif";
 
 var uv2_pars_fragment = "#if defined( USE_LIGHTMAP ) || defined( USE_AOMAP )\n\tvarying vec2 vUv2;\n#endif";
 
@@ -15395,7 +15384,7 @@ class PMREMGenerator {
 
 	_setEncoding( uniform, texture ) {
 
-		if ( this._renderer.capabilities.isWebGL2 === true && texture.format === RGBAFormat && texture.type === UnsignedByteType && texture.encoding === sRGBEncoding ) {
+		/* if ( this._renderer.capabilities.isWebGL2 === true && texture.format === RGBAFormat && texture.type === UnsignedByteType && texture.encoding === sRGBEncoding ) {
 
 			uniform.value = ENCODINGS[ LinearEncoding ];
 
@@ -15403,7 +15392,9 @@ class PMREMGenerator {
 
 			uniform.value = ENCODINGS[ texture.encoding ];
 
-		}
+		} */
+
+		uniform.value = ENCODINGS[ texture.encoding ];
 
 	}
 
@@ -18509,7 +18500,7 @@ function WebGLProgram( renderer, cacheKey, parameters, bindingStates ) {
 
 			'attribute vec3 position;',
 			'attribute vec3 normal;',
-			'attribute vec2 uv;',
+			'attribute vec3 uv;',
 
 			'#ifdef USE_TANGENT',
 
@@ -18970,11 +18961,11 @@ function WebGLPrograms( renderer, cubemaps, cubeuvmaps, extensions, capabilities
 
 		}
 
-		if ( isWebGL2 && map && map.isTexture && map.format === RGBAFormat && map.type === UnsignedByteType && map.encoding === sRGBEncoding ) {
+		/* if ( isWebGL2 && map && map.isTexture && map.format === RGBAFormat && map.type === UnsignedByteType && map.encoding === sRGBEncoding ) {
 
 			encoding = LinearEncoding; // disable inline decode for sRGB textures in WebGL 2
 
-		}
+		} */
 
 		return encoding;
 
@@ -21924,7 +21915,7 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 	}
 
-	function getInternalFormat( internalFormatName, glFormat, glType, encoding ) {
+	function getInternalFormat( internalFormatName, glFormat, glType/*, encoding*/ ) {
 
 		if ( isWebGL2 === false ) return glFormat;
 
@@ -21958,7 +21949,9 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 			if ( glType === 5126 ) internalFormat = 34836;
 			if ( glType === 5131 ) internalFormat = 34842;
-			if ( glType === 5121 ) internalFormat = ( encoding === sRGBEncoding ) ? 35907 : 32856;
+			//if ( glType === 5121 ) internalFormat = ( encoding === sRGBEncoding ) ? 35907 : 32856;
+			if ( glType === 5121 ) internalFormat = 32856;
+
 
 		}
 
@@ -34209,7 +34202,8 @@ class LatheGeometry extends BufferGeometry {
 
 		const inverseSegments = 1.0 / segments;
 		const vertex = new Vector3();
-		const uv = new Vector2();
+		const uv = new Vector3();
+      var scale = 1.0;
 
 		// generate vertices and uvs
 
@@ -34221,6 +34215,8 @@ class LatheGeometry extends BufferGeometry {
 			const cos = Math.cos( phi );
 
 			for ( let j = 0; j <= ( points.length - 1 ); j ++ ) {
+            
+            scale = points[j].x / points[0].x;
 
 				// vertex
 
@@ -34232,10 +34228,11 @@ class LatheGeometry extends BufferGeometry {
 
 				// uv
 
-				uv.x = i / segments;
+				uv.x = ( i / segments ) * scale;
 				uv.y = j / ( points.length - 1 );
+				uv.z = scale;
 
-				uvs.push( uv.x, uv.y );
+                    uvs.push( uv.x, uv.y, uv.z );
 
 
 			}
@@ -34268,7 +34265,7 @@ class LatheGeometry extends BufferGeometry {
 
 		this.setIndex( indices );
 		this.setAttribute( 'position', new Float32BufferAttribute( vertices, 3 ) );
-		this.setAttribute( 'uv', new Float32BufferAttribute( uvs, 2 ) );
+		this.setAttribute( 'uv', new Float32BufferAttribute( uvs, 3 ) );
 
 		// generate normals
 

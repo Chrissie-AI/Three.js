@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>three.js webgl - non-affine texture mapping</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link type="text/css" rel="stylesheet" href="main.css">
+  </head>
+  <body>
+
+    <div id="info">
+      <a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> - webgl non-affine texture mapping example<br/>
+    </div>
+
+    <script type="module">
+      import * as THREE from "../build/three.module.js";
+      import { OrbitControls } from "../examples/jsm/controls/OrbitControls.js";
+      import { GUI } from "../examples/jsm/libs/dat.gui.module.js";
+
+      let controls, camera, scene, renderer;
+      let textureEquirec;
+      let testMesh, testMaterial;
+
+      const PI_180 = Math.PI / 180.0;
+      const points = [];
+
+      let ambientLight, light;
+      let parameters;
+      let shading;
+      let latheSegments = 5;
+
+      let wireMaterial, flatMaterial, gouraudMaterial, phongMaterial, texturedMaterial, reflectiveMaterial;
+
+
+      init();
+
+      render();
+
+      function init() {
+
+        // CAMERA
+
+        camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
+        camera.position.set( 0, 0, -60 );
+        camera.lookAt( 0, 0, 0);
+
+        // SCENE
+
+        scene = new THREE.Scene();
+
+        // LIGHTS
+        ambientLight = new THREE.AmbientLight( 0x222222 );
+
+        light = new THREE.DirectionalLight( 0xFFFFFF, 1.0 );
+        light.position.set( 32, 39, -70 );
+
+        scene.add( ambientLight );
+        scene.add( light );
+
+                                             
+        // Texture
+
+        const textureLoader = new THREE.TextureLoader();
+
+        textureEquirec = textureLoader.load( 'textures/pano.jpg' );
+        textureEquirec.mapping = THREE.EquirectangularReflectionMapping;
+        textureEquirec.encoding = THREE.sRGBEncoding;
+
+        const textureMap = new THREE.TextureLoader().load( "https://vielzutun.ch/wordpress/wp-content/uploads/2021/10/uv_grid_opengl.jpg" );
+        textureMap.wrapS = textureMap.wrapT = THREE.RepeatWrapping;
+        textureMap.anisotropy = 16;
+        textureMap.encoding = THREE.sRGBEncoding;
+
+//        scene.background = textureMap;
+
+
+        // initialize points[] array for use in LatheGeometry
+                                             
+        points.length = 0;
+
+/*        addArcToPath( 0.0, 0.6, 6.0, 90, 137.3271, 5 );                     // Teller unten innen
+        addArcToPath( -11.7638, 11.4450, 10.0, 317.3269, 282.8062, 5 );     // 1. Ausrundung nach aussen
+        points.push( new THREE.Vector2( -15.9041, 0.2488 ) );               // linearer Übergang zum Tellerboden
+        addArcToPath( -18.1207, 10.0, 10.0, 282.8062, 270.0, 5 );           // 2. Ausrundung zum Tellerboden
+        points.push( new THREE.Vector2( -21.75, 0.0 ) );                    // Tellerboden bis Aussen_dm
+        points.push( new THREE.Vector2( -21.75, 0.0 ) );                    // duplicate to avoid Phong rounding
+        points.push( new THREE.Vector2( -21.75, 1.0 ) );                    // Zylinderfläche Aussen_dm
+        points.push( new THREE.Vector2( -21.75, 1.0 ) );                    // duplicate to avoid Phong rounding
+        points.push( new THREE.Vector2( -20.25, 2.5 ) );                    // Ventilsitzfläche
+        points.push( new THREE.Vector2( -20.25, 2.5 ) );                    // duplicate to avoid Phong rounding
+        addArcToPath( -13.5, 15.8461, 10.0, 291.20981, 360.0, 9 );          // Ausrundung zum Ventilschaft
+        points.push( new THREE.Vector2( -3.5, 19.8775 ) );                  // Ventilschaft bis Hohlkehle
+        addArcToPath( -13.0, 23.0, 10.0, 341.8051, 378.19485, 5 );          // Hohlkehle
+        points.push( new THREE.Vector2( -3.5, 26.1225 ) );                  // duplicate to avoid Phong rounding
+        points.push( new THREE.Vector2( -3.5, 29.5 ) );                     // Schaft bis Rille UK
+        addArcToPath( -3.5, 30.4, 0.9, 270, 450, 7 );                      // Rille
+        points.push( new THREE.Vector2( -3.5, 31.3 ) );                    // duplicate to avoid Phong rounding
+        points.push( new THREE.Vector2( -3.5, 33.9 ) );                    // Ventilschaft oberhalb Rille
+        points.push( new THREE.Vector2( -3.5, 33.9 ) );                    // duplicate to avoid Phong rounding
+        points.push( new THREE.Vector2( -3.4, 34.0 ) );                    // Fase OK Schaft
+        points.push( new THREE.Vector2( -3.4, 34.0 ) );                    // duplicate to avoid Phong rounding
+        points.push( new THREE.Vector2( -0.0, 34.0 ) );                    // Stirnfläche Ventilschaft
+ */
+        points.push( new THREE.Vector2( -25.0,  0.0 ) );                    // Tellerboden bis Aussen_dm
+        points.push( new THREE.Vector2( -15.0,  0.0 ) );                    // Tellerboden bis Aussen_dm
+        points.push( new THREE.Vector2( - 5.0, 10.0 ) );                    // Tellerboden bis Aussen_dm
+        points.push( new THREE.Vector2(   0.0, 10.0 ) );                    // Tellerboden bis Aussen_dm
+
+        //
+        createNewTestMesh();
+
+        renderer = new THREE.WebGLRenderer();
+        renderer.setPixelRatio( window.devicePixelRatio );
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        document.body.appendChild( renderer.domElement );
+
+        //
+
+        controls = new OrbitControls( camera, renderer.domElement );
+        controls.addEventListener( 'change', render );
+        controls.minDistance = 20;
+        controls.maxDistance = 1500;
+        controls.enablePan = true;
+        controls.target = new THREE.Vector3( 0, 0, 0 );
+        controls.addEventListener( 'change', render );
+
+
+        // Materials
+
+        const materialColor = new THREE.Color();
+        materialColor.setRGB( 0.0, 0.0, 1.0 );
+        const whiteColor = new THREE.Color();
+        whiteColor.setRGB( 1.0, 1.0, 1.0 );
+
+        wireMaterial = new THREE.MeshBasicMaterial( {color: 0x0000ff,
+                                                     wireframe:true } );
+
+        flatMaterial = new THREE.MeshPhongMaterial( { color: materialColor,
+                                                      specular: 0x000000,
+                                                      flatShading: true,
+                                                      side: THREE.DoubleSide } );
+
+        gouraudMaterial = new THREE.MeshLambertMaterial( { color: materialColor,
+                                                           side: THREE.DoubleSide } );
+
+        phongMaterial = new THREE.MeshPhongMaterial( { color: materialColor,
+                                                       shininess: 30,
+                                                       side: THREE.DoubleSide } );
+
+        texturedMaterial = new THREE.MeshPhongMaterial( { color: whiteColor,
+                                                          map: textureMap,
+                                                          side: THREE.DoubleSide } );
+
+ ///       reflectiveMaterial = new THREE.MeshLambertMaterial( { color: whiteColor,
+        reflectiveMaterial = new THREE.MeshPhongMaterial( { color: whiteColor,
+                                                            envMap: textureEquirec } );
+
+        
+        window.addEventListener( 'resize', onWindowResize );
+
+        setupGui();
+
+      }
+
+      function onWindowResize() {
+
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        
+        render();
+
+      }
+
+      function setupGui() {
+
+         parameters = {
+
+            Segments:  latheSegments,
+            newShading: "textured"
+         };
+
+         const gui = new GUI();
+
+         gui.add( parameters, 'Segments', 3, 50, 1 ).onChange( function ( val ) {
+
+           parameters.latheSegments = val;
+           render();
+
+         } );
+
+         gui.add( parameters, "newShading", [ "wireframe", "flat", "smooth", "glossy", "textured", "reflective" ] ).name( "Shading" ).onChange( render );
+
+      }
+
+      function render() {
+
+        if ( parameters.newShading !== shading ||
+             parameters.latheSegments !== latheSegments) {
+
+          shading = parameters.newShading;
+          latheSegments = parameters.latheSegments;
+
+          createNewTestMesh();
+
+        }
+
+        renderer.render( scene, camera );
+
+      }
+
+
+      // Whenever the testMesh changes, the scene is rebuilt from scratch (not much to it).
+      function createNewTestMesh() {
+
+         if ( testMesh !== undefined ) {
+
+            testMesh.geometry.dispose();
+            scene.remove( testMesh );
+
+         }
+
+         const testGeometry = new THREE.LatheBufferGeometry( points, latheSegments, 0.0, 360 * PI_180 );
+
+         testMesh = new THREE.Mesh( testGeometry,
+            shading === "wireframe" ? wireMaterial : (
+               shading === "flat" ? flatMaterial : (
+                  shading === "smooth" ? gouraudMaterial : (
+                     shading === "glossy" ? phongMaterial : (
+                        shading === "textured" ? texturedMaterial : reflectiveMaterial ) ) ) ) );
+
+         scene.add( testMesh );
+
+      }
+
+
+      function addArcToPath( centerX, centerY, radius, startAng, endAng, steps ) {
+      /*
+      This function adds the necessary points on an arc-path to the GLOBAL points[] array for use in a THREE.LatheBufferGeometry .
+
+      Input variables:
+
+      centerX, centerY:  arc center coordinates
+      radius:            arc radius
+      startAng:          angle at which to start the arc. This is in degrees [°] ccw!
+      endAng:            angle at which to end the arc. This is in degrees [°] ccw!
+      steps:             number of intermediate points for arc approximation.
+
+      */
+          let delta = (endAng - startAng) / steps;
+
+          for ( let i = 0; i <= steps; i ++ ) { // '<=' : I want both start and end points to be included
+
+              points.push( new THREE.Vector2( centerX + radius * Math.cos( (startAng + i * delta) * PI_180 ),
+                                              centerY + radius * Math.sin( (startAng + i * delta) * PI_180 ) ) );
+          }
+
+      }
+
+    </script>
+
+  </body>
+</html>

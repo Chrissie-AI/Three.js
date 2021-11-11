@@ -7,7 +7,7 @@ export default /* glsl */`
 
 	#else
 
-		varying vec2 vUv;
+		varying vec3 vUv;
 
 	#endif
 
