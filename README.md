@@ -1,3 +1,21 @@
+This is a clone pulled from origin   https://github.com/mrdoob/three.js.git  , dev branch.
+I'm branching off the dev branch my  "MyMapping" branch.
+
+The object of MyMapping is an improvement in the way, textures are mapped onto surfaces.
+Currently this is done via  affine mapping, which the fastest approach, although with limited accuracy.
+Imperfection become visible along the diagonals of tapered quadrilaterals.
+
+The new approach, which is being developped here, eliminates the kinks along the diagonals of trapezoid quadrilaterals. This is achieved via a perspective upscaling of the uv-coordinates, followed by a perspective division in the fragment shader.
+
+This is currently working - as a proof of concept - for MeshPhongMaterials (without reflections) on LatheGeometries.
+
+Further details in this discussion:
+
+https://discourse.threejs.org/t/mapping-fidelity-in-quadrilateral-triangle-rendering/31033
+
+
+
+
 three.js
 ========
 
