@@ -36,7 +36,7 @@ class LatheGeometry extends BufferGeometry {
 		const inverseSegments = 1.0 / segments;
 		const vertex = new Vector3();
 		const uv = new Vector3();
-      var scale = 1.0;
+		var scale = 1.0;
 
 		// generate vertices and uvs
 
