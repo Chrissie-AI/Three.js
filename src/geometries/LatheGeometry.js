@@ -48,8 +48,8 @@ class LatheGeometry extends BufferGeometry {
 			const cos = Math.cos( phi );
 
 			for ( let j = 0; j <= ( points.length - 1 ); j ++ ) {
-            
-            scale = points[j].x / points[0].x;
+
+				scale = points[ j ].x / points[0].x;
 
 				// vertex
 
@@ -65,7 +65,7 @@ class LatheGeometry extends BufferGeometry {
 				uv.y = j / ( points.length - 1 );
 				uv.z = scale;
 
-                    uvs.push( uv.x, uv.y, uv.z );
+				uvs.push( uv.x, uv.y, uv.z );
 
 
 			}
