@@ -49,7 +49,7 @@ class LatheGeometry extends BufferGeometry {
 
 			for ( let j = 0; j <= ( points.length - 1 ); j ++ ) {
 
-				scale = points[ j ].x / points[0].x;
+				scale = points[ j ].x / points[ 0 ].x;
 
 				// vertex
 
