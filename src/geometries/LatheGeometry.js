@@ -36,7 +36,7 @@ class LatheGeometry extends BufferGeometry {
 		// helper variables
 
 		const inverseSegments = 1.0 / segments;
-      const normal = new Vector3();
+		const normal = new Vector3();
 		var prevNormal = new Vector3();
 		var curNormal = new Vector3();
 		const vertex = new Vector3();
@@ -57,7 +57,7 @@ class LatheGeometry extends BufferGeometry {
 					dy = points[ j + 1 ].y - points[ j ].y;
 
 					normal.x = dy * 1.0;
-					normal.y = -dx;
+					normal.y = - dx;
 					normal.z = dy * 0.0;
 
 					prevNormal.copy( normal );
@@ -68,19 +68,19 @@ class LatheGeometry extends BufferGeometry {
 
 					break;
 
-				case ( points.length - 1 ):      // special handling for last Vertex on path
+				case ( points.length - 1 ):			// special handling for last Vertex on path
 
 					initNormals.push( prevNormal.x, prevNormal.y, prevNormal.z );
 
 					break;
 
-				default:      // default handling for all vertices in between
+				default:			// default handling for all vertices in between
 
 					dx = points[ j + 1 ].x - points[ j ].x;
 					dy = points[ j + 1 ].y - points[ j ].y;
 
 					normal.x = dy * 1.0;
-					normal.y = -dx;
+					normal.y = - dx;
 					normal.z = dy * 0.0;
 
 					curNormal.copy( normal );
@@ -130,9 +130,9 @@ class LatheGeometry extends BufferGeometry {
 
 				// normal
 
-				let x = initNormals[ 3 * j + 0 ] * sin;
-				let y = initNormals[ 3 * j + 1 ];
-				let z = initNormals[ 3 * j + 0 ] * cos;
+				const x = initNormals[ 3 * j + 0 ] * sin;
+				const y = initNormals[ 3 * j + 1 ];
+				const z = initNormals[ 3 * j + 0 ] * cos;
 
 				normals.push( x, y, z );
 
@@ -170,7 +170,9 @@ class LatheGeometry extends BufferGeometry {
 		this.setAttribute( 'normal', new Float32BufferAttribute( normals, 3 ) );
 
 		// legacy normals generation and seam handling now obsolete
-/*
+
+		/*
+
 		// generate normals
 
 		this.computeVertexNormals();
@@ -216,7 +218,9 @@ class LatheGeometry extends BufferGeometry {
 			}
 
 		}
-*/
+		 
+		*/
+						  
 	}
 
 	static fromJSON( data ) {

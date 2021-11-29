@@ -25044,9 +25044,9 @@
 					uv.z = scale;
 					uvs.push(uv.x, uv.y, uv.z); // normal
 
-					let x = initNormals[3 * j + 0] * sin;
-					let y = initNormals[3 * j + 1];
-					let z = initNormals[3 * j + 0] * cos;
+					const x = initNormals[3 * j + 0] * sin;
+					const y = initNormals[3 * j + 1];
+					const z = initNormals[3 * j + 0] * cos;
 					normals.push(x, y, z);
 				}
 			} // indices
@@ -25072,51 +25072,35 @@
 			this.setAttribute('normal', new Float32BufferAttribute(normals, 3)); // legacy normals generation and seam handling now obsolete
 
 			/*
-					// generate normals
-			
-					this.computeVertexNormals();
-			
-					// if the geometry is closed, we need to average the normals along the seam.
-					// because the corresponding vertices are identical (but still have different UVs).
-			
-					if ( phiLength === Math.PI * 2 ) {
-			
-						const normals = this.attributes.normal.array;
-						const n1 = new Vector3();
-						const n2 = new Vector3();
-						const n = new Vector3();
-			
-						// this is the buffer offset for the last line of vertices
-			
-						const base = segments * points.length * 3;
-			
-						for ( let i = 0, j = 0; i < points.length; i ++, j += 3 ) {
-			
-							// select the normal of the vertex in the first line
-			
-							n1.x = normals[ j + 0 ];
-							n1.y = normals[ j + 1 ];
-							n1.z = normals[ j + 2 ];
-			
-							// select the normal of the vertex in the last line
-			
-							n2.x = normals[ base + j + 0 ];
-							n2.y = normals[ base + j + 1 ];
-							n2.z = normals[ base + j + 2 ];
-			
-							// average normals
-			
-							n.addVectors( n1, n2 ).normalize();
-			
-							// assign the new values to both normals
-			
-							normals[ j + 0 ] = normals[ base + j + 0 ] = n.x;
-							normals[ j + 1 ] = normals[ base + j + 1 ] = n.y;
-							normals[ j + 2 ] = normals[ base + j + 2 ] = n.z;
-			
-						}
-			
+				// generate normals
+				this.computeVertexNormals();
+				// if the geometry is closed, we need to average the normals along the seam.
+			// because the corresponding vertices are identical (but still have different UVs).
+				if ( phiLength === Math.PI * 2 ) {
+					const normals = this.attributes.normal.array;
+				const n1 = new Vector3();
+				const n2 = new Vector3();
+				const n = new Vector3();
+					// this is the buffer offset for the last line of vertices
+					const base = segments * points.length * 3;
+					for ( let i = 0, j = 0; i < points.length; i ++, j += 3 ) {
+						// select the normal of the vertex in the first line
+						n1.x = normals[ j + 0 ];
+					n1.y = normals[ j + 1 ];
+					n1.z = normals[ j + 2 ];
+						// select the normal of the vertex in the last line
+						n2.x = normals[ base + j + 0 ];
+					n2.y = normals[ base + j + 1 ];
+					n2.z = normals[ base + j + 2 ];
+						// average normals
+						n.addVectors( n1, n2 ).normalize();
+						// assign the new values to both normals
+						normals[ j + 0 ] = normals[ base + j + 0 ] = n.x;
+					normals[ j + 1 ] = normals[ base + j + 1 ] = n.y;
+					normals[ j + 2 ] = normals[ base + j + 2 ] = n.z;
 					}
+				}
+			 
 			*/
 		}
 
