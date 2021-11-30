@@ -218,9 +218,9 @@ class LatheGeometry extends BufferGeometry {
 			}
 
 		}
-		 
+
 		*/
-						  
+
 	}
 
 	static fromJSON( data ) {
